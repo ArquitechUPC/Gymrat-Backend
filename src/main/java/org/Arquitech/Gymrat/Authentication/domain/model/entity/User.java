@@ -31,16 +31,13 @@ public class User implements UserDetails {
     String phoneNumber;
     String address;
     String city;
+
+    @Enumerated(EnumType.STRING)
     Role role;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
-    }
-
-    @Override
-    public String getUsername() {
-        return null;
     }
 
     @Override
