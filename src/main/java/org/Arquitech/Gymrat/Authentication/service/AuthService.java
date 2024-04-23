@@ -9,11 +9,15 @@ import org.Arquitech.Gymrat.Authentication.resource.AuthResponse;
 import org.Arquitech.Gymrat.Authentication.resource.ChangePasswordRequest;
 import org.Arquitech.Gymrat.Authentication.resource.LoginRequest;
 import org.Arquitech.Gymrat.Authentication.resource.RegisterRequest;
+import org.Arquitech.Gymrat.Shared.exception.CustomException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 @Service
 @RequiredArgsConstructor
@@ -25,31 +29,31 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     public AuthResponse login(LoginRequest request) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+            UserDetails user = userRepository.findByUsername(request.getUsername())
+                    .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
-        UserDetails user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-
-        String token = jwtService.getToken(user);
-        return AuthResponse.builder()
-                .token(token)
-                .build();
+            String token = jwtService.getToken(user);
+            return AuthResponse.builder().token(token).build();
+        } catch (Exception ex) {
+            throw new CustomException("Authentication failed: " + ex.getMessage(), HttpStatus.UNAUTHORIZED);
+        }
     }
 
     public AuthResponse changePassword(ChangePasswordRequest request) {
 
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new RuntimeException("Passwords do not match");
+            throw new CustomException("New passwords do not match", HttpStatus.BAD_REQUEST);
         }
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
         UserDetails user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
         userRepository.findById(((User) user).getId())
                 .ifPresent(userToUpdate -> {
@@ -62,24 +66,6 @@ public class AuthService {
                 .token(token)
                 .build();
     }
-
-//    @Override
-//    public Payment update(Payment payment) {
-//        Set<ConstraintViolation<Payment>> violations = validator.validate(payment);
-//        if (!violations.isEmpty()) {
-//            throw new ResourceValidationException(ENTITY, violations);
-//        }
-//
-//        return paymentRepository
-//                .findById(payment.getId())
-//                .map(paymentToUpdate -> {
-//                    paymentToUpdate.setAmount(payment.getAmount());
-//                    paymentToUpdate.setDescription(payment.getDescription());
-//                    paymentToUpdate.setAppointment(payment.getAppointment());
-//                    return paymentRepository.save(paymentToUpdate);
-//                })
-//                .orElseThrow(() -> new ResourceNotFoundException(ENTITY, payment.getId()));
-//    }
 
 
     public AuthResponse register(RegisterRequest request) {
