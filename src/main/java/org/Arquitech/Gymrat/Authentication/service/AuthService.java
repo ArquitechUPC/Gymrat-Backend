@@ -6,6 +6,7 @@ import org.Arquitech.Gymrat.Authentication.domain.model.entity.User;
 import org.Arquitech.Gymrat.Authentication.domain.persistence.UserRepository;
 import org.Arquitech.Gymrat.Authentication.jwt.JwtService;
 import org.Arquitech.Gymrat.Authentication.resource.AuthResponse;
+import org.Arquitech.Gymrat.Authentication.resource.ChangePasswordRequest;
 import org.Arquitech.Gymrat.Authentication.resource.LoginRequest;
 import org.Arquitech.Gymrat.Authentication.resource.RegisterRequest;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,15 +25,62 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     public AuthResponse login(LoginRequest request) {
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+
         UserDetails user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+
         String token = jwtService.getToken(user);
         return AuthResponse.builder()
                 .token(token)
                 .build();
     }
+
+    public AuthResponse changePassword(ChangePasswordRequest request) {
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new RuntimeException("Passwords do not match");
+        }
+
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+
+        UserDetails user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        userRepository.findById(((User) user).getId())
+                .ifPresent(userToUpdate -> {
+                    userToUpdate.setPassword(passwordEncoder.encode(request.getNewPassword()));
+                    userRepository.save(userToUpdate);
+                });
+
+        String token = jwtService.getToken(user);
+        return AuthResponse.builder()
+                .token(token)
+                .build();
+    }
+
+//    @Override
+//    public Payment update(Payment payment) {
+//        Set<ConstraintViolation<Payment>> violations = validator.validate(payment);
+//        if (!violations.isEmpty()) {
+//            throw new ResourceValidationException(ENTITY, violations);
+//        }
+//
+//        return paymentRepository
+//                .findById(payment.getId())
+//                .map(paymentToUpdate -> {
+//                    paymentToUpdate.setAmount(payment.getAmount());
+//                    paymentToUpdate.setDescription(payment.getDescription());
+//                    paymentToUpdate.setAppointment(payment.getAppointment());
+//                    return paymentRepository.save(paymentToUpdate);
+//                })
+//                .orElseThrow(() -> new ResourceNotFoundException(ENTITY, payment.getId()));
+//    }
+
 
     public AuthResponse register(RegisterRequest request) {
         User user = User.builder()
