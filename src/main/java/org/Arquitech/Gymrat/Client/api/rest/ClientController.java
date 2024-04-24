@@ -22,7 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("api/v1/clients")
 @AllArgsConstructor
-public class UserController {
+public class ClientController {
 
     private final ClientService clientService;
     private final ClientMapper mapper;
@@ -39,7 +39,7 @@ public class UserController {
     }
 
 
-    @Operation(summary = "Get an client by id", responses = {
+    @Operation(summary = "Get a client by id", responses = {
             @ApiResponse(description = "Successfully fetched client by id",
                     responseCode = "201",
                     content = @Content(mediaType = "application/json",

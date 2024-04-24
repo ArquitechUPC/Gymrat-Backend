@@ -40,12 +40,6 @@ public class Measurement {
     @Column(name = "leg_circumference")
     private Double legCircumference;
 
-    /*
-    //cliente del que pertenece el Measurement
-    @NotNull
-    private Integer clientId;
-    */
-
     @PrePersist
     public void prePersist() {
         date = LocalDate.now();

@@ -38,8 +38,4 @@ public class UpdateGoalResource {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date endDate;
 
-    @NotNull
-    @NotBlank
-    private Integer givenMeasurementId;
-
 }

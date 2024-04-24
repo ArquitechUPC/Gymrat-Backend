@@ -41,8 +41,4 @@ public class Goal {
     @JoinColumn(name = "measurement_id")
     private Measurement measurementGoal;
 
-    /*
-    //cliente del que pertenece el Goal
-    @NotNull
-    private Integer clientId;*/
 }
