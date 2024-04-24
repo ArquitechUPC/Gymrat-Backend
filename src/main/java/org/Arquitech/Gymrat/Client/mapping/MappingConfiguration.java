@@ -7,4 +7,14 @@ import org.springframework.context.annotation.Configuration;
 public class MappingConfiguration {
     @Bean
     public ClientMapper  clientMapper(){ return new ClientMapper(); }
+
+    @Bean
+    public PlanMapper planMapper(){ return new PlanMapper(); }
+
+    @Bean
+    public MeasurementMapper measurementMapper(){ return new MeasurementMapper(); }
+
+    @Bean
+    public GoalMapper goalMapper(){ return new GoalMapper(); }
+
 }
